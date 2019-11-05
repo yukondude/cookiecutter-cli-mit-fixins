@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "mitfixins"
+version = "0.1.0"
+description = "Cookiecutter-generated Click-based Python command line interface."
+authors = ["Dave Rogers <thedude@yukondude.com>"]
+license = "GPL-3.0"
+
+[tool.poetry.dependencies]
+python = "^3.7"
+click = "^7.0"
+
+[tool.poetry.dev-dependencies]
+pytest = "^5.2"
+coverage = "^4.5"
+pre-commit = "^1.20"
+pysnooper = "^0.2.8"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
