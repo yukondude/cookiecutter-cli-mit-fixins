@@ -100,11 +100,15 @@ def show_version(ctx, param, value):
 def main(**kwargs):
     """ Main help topic.
     """
-    echo = echo_wrapper(kwargs["verbose"])
+    is_dry_run = kwargs["dry_run"]
 
+    # --dry-run implies at least one --verbose.
+    verbose = max(kwargs["verbose"], 1 if is_dry_run else 0)
+
+    # Take echo() for a spin.
+    echo = echo_wrapper(verbose)
     echo("This is a message")
-    echo("This is a warning", threshold=5, severity=2)
+    echo("This is a warning", threshold=3, severity=2)
     echo("This is an error", severity=3)
-
     echo("This is an additional message", threshold=2)
     echo("This is a debug message", threshold=3)
