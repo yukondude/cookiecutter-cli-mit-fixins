@@ -11,27 +11,61 @@ import pkg_resources
 import click
 
 
-# The name of this command is its package name.
-COMMAND_NAME = os.path.splitext(__name__)[0]
+def echo_wrapper(verbosity):
+    """ Return an echo function that displays or doesn't based on the verbosity count.
+    """
+    severity_ranks = {
+        1: {"prefix": "", "style": {"fg": "green", "bold": False}},
+        2: {"prefix": "WARNING ", "style": {"fg": "yellow", "bold": True}},
+        3: {"prefix": "ERROR ", "style": {"fg": "red", "bold": True}},
+    }
 
-# What to display if the command is not registered (via `poetry install`).
-UNREGISTERED_MESSAGE = f"({COMMAND_NAME} is not registered)"
+    # Clamp the verbosity between 0 and 3.
+    verbosity = min(max(verbosity, 0), 3)
+
+    def echo_func(message, threshold=1, severity=1):
+        """ Display the message if the given threshold is no greater than the current
+            verbosity count. Errors are always displayed. Warnings are displayed if the
+            verbosity count is at least 1. Errors and warnings are sent to STDERR.
+        """
+        # Clamp the threshold and severity between 1 and 3.
+        threshold = min(max(threshold, 1), 3)
+        severity = min(max(severity, 1), 3)
+
+        if severity == 2:
+            # Display warnings if verbosity is turned on at all.
+            threshold = 1
+        elif severity >= 3:
+            # Always display errors.
+            threshold = 0
+
+        if threshold <= verbosity:
+            severity_rank = severity_ranks.get(severity, severity_ranks[3])
+            prefix = severity_rank["prefix"]
+            style = severity_rank["style"]
+
+            is_err = severity > 1
+            click.secho(f"{prefix}{message}", err=is_err, **style)
+
+    return echo_func
 
 
 def show_version(ctx, param, value):
-    """ Display the version message.
+    """ Show the version number and exit.
     """
     _ = param
 
     if not value or ctx.resilient_parsing:
         return  # pragma: no cover
 
-    try:
-        version = pkg_resources.get_distribution(COMMAND_NAME).version
-    except pkg_resources.DistributionNotFound:
-        version = UNREGISTERED_MESSAGE
+    command_name = os.path.splitext(__name__)[0]
 
-    click.echo(f"{COMMAND_NAME} version {version}")
+    try:
+        version = pkg_resources.get_distribution(command_name).version
+    except pkg_resources.DistributionNotFound:
+        version = f"({command_name} is not registered)"
+
+    click.echo(f"{command_name} version {version}")
     click.echo("Copyright 2019 Dave Rogers. Licensed under the GPLv3. See LICENSE.")
     ctx.exit()
 
@@ -66,4 +100,11 @@ def show_version(ctx, param, value):
 def main(**kwargs):
     """ Main help topic.
     """
-    _ = kwargs
+    echo = echo_wrapper(kwargs["verbose"])
+
+    echo("This is a message")
+    echo("This is a warning", threshold=5, severity=2)
+    echo("This is an error", severity=3)
+
+    echo("This is an additional message", threshold=2)
+    echo("This is a debug message", threshold=3)
