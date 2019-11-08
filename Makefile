@@ -10,3 +10,7 @@
 test:
 	coverage run --module py.test
 	coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'
+
+fulltest:
+	coverage run --module py.test --verbose
+	coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'
