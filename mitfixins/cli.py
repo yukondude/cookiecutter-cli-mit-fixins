@@ -1,4 +1,4 @@
-""" Console script entry point.
+""" CLI entry point.
 """
 
 # This file is part of cookiecutter-cli-mit-fixins. Copyright 2019 Dave Rogers

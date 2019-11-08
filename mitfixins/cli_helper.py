@@ -1,4 +1,4 @@
-""" Console script helper functions.
+""" CLI helper functions.
 """
 
 # This file is part of cookiecutter-cli-mit-fixins. Copyright 2019 Dave Rogers

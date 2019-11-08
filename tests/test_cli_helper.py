@@ -1,12 +1,9 @@
-""" Console script entry point unit tests.
+""" CLI helper function unit tests.
 """
 
 # This file is part of cookiecutter-cli-mit-fixins. Copyright 2019 Dave Rogers
 # <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
-
-import configparser
-import os
 
 import pytest
 
@@ -71,7 +68,7 @@ def test_show_version_fail(capsys):
     assert captured_err == ""
 
 
-def test_show_version(capsys):
+def test_show_version(capsys, version_message):
     class MockContext:
         resilient_parsing = False
 
@@ -80,12 +77,5 @@ def test_show_version(capsys):
 
     show_version(MockContext(), None, True)
     captured_out, captured_err = capsys.readouterr()
-
-    pyproject = configparser.ConfigParser()
-    pyproject.read(os.path.join(os.path.splitext(__name__)[0], "..", "pyproject.toml"))
-    command_name = pyproject["tool.poetry"]["name"].strip('"')
-    version = pyproject["tool.poetry"]["version"].strip('"')
-    copyright = "Copyright 2019 Dave Rogers. Licensed under the GPLv3. See LICENSE."
-
-    assert captured_out == f"{command_name} version {version}\n{copyright}\n"
+    assert captured_out == version_message
     assert captured_err == ""
