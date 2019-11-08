@@ -6,9 +6,13 @@
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 import os
+import sys
+
 import pkg_resources
 
 import click
+from click._compat import get_text_stderr
+from click.utils import echo
 
 
 def echo_wrapper(verbosity):
@@ -48,6 +52,26 @@ def echo_wrapper(verbosity):
             click.secho(f"{prefix}{message}", err=is_err, **style)
 
     return echo_func
+
+
+def modify_usage_error(main_command):
+    """ Override the standard error behaviour with a splash of colour.
+        Taken from https://stackoverflow.com/a/43922088/726
+    """
+
+    def show(self, file=None):
+        if file is None:
+            file = get_text_stderr()
+
+        if self.ctx is not None:
+            color = self.ctx.color
+            echo(self.ctx.get_usage() + "\n", file=file, color=color)
+
+        echo_wrapper(0)(self.format_message(), severity=3)
+        sys.argv = [sys.argv[0]]
+        main_command()
+
+    click.exceptions.UsageError.show = show
 
 
 def show_version(ctx, param, value):
