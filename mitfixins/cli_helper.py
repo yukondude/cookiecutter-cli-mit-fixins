@@ -11,6 +11,8 @@ import sys
 import pkg_resources
 
 import click
+
+# noinspection PyProtectedMember
 from click._compat import get_text_stderr
 from click.utils import echo
 
