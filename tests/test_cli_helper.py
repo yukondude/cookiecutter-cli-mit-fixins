@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from mitfixins.cli import echo_wrapper, show_version
+from mitfixins.cli_helper import echo_wrapper, show_version
 
 
 @pytest.mark.parametrize("arguments,expected", [
