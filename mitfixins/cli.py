@@ -27,7 +27,7 @@ from .cli_helper import echo_wrapper, show_version
     help="Increase the verbosity of status messages: use once for normal output, twice "
     "for additional output, and thrice for debug-level output.",
 )
-@click.argument("ARGUMENT", nargs=-1)
+@click.argument("ARGUMENT", nargs=-1, type=click.File("r"))
 @click.option(
     "--version",
     "-V",
