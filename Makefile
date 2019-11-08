@@ -9,4 +9,4 @@
 
 test:
 	coverage run --module py.test
-	coverage report --show-missing --omit='*site-packages*,*__init__.py'
+	coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'

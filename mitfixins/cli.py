@@ -56,13 +56,13 @@ def show_version(ctx, param, value):
     _ = param
 
     if not value or ctx.resilient_parsing:
-        return  # pragma: no cover
+        return
 
     command_name = os.path.splitext(__name__)[0]
 
     try:
         version = pkg_resources.get_distribution(command_name).version
-    except pkg_resources.DistributionNotFound:
+    except pkg_resources.DistributionNotFound:  # pragma: no cover
         version = f"({command_name} is not registered)"
 
     click.echo(f"{command_name} version {version}")
@@ -106,9 +106,4 @@ def main(**kwargs):
     verbose = max(kwargs["verbose"], 1 if is_dry_run else 0)
 
     # Take echo() for a spin.
-    echo = echo_wrapper(verbose)
-    echo("This is a message")
-    echo("This is a warning", threshold=3, severity=2)
-    echo("This is an error", severity=3)
-    echo("This is an additional message", threshold=2)
-    echo("This is a debug message", threshold=3)
+    _ = echo_wrapper(verbose)

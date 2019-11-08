@@ -5,9 +5,12 @@
 # <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
+import configparser
+import os
+
 import pytest
 
-from mitfixins.cli import echo_wrapper
+from mitfixins.cli import echo_wrapper, show_version
 
 
 @pytest.mark.parametrize("arguments,expected", [
@@ -59,3 +62,30 @@ def test_echo_wrapper(capsys, arguments, expected):
     captured_out, captured_err = capsys.readouterr()
     assert captured_out.strip() == expected_out
     assert captured_err.strip() == expected_err
+
+
+def test_show_version_fail(capsys):
+    show_version(None, None, None)
+    captured_out, captured_err = capsys.readouterr()
+    assert captured_out == ""
+    assert captured_err == ""
+
+
+def test_show_version(capsys):
+    class MockContext:
+        resilient_parsing = False
+
+        def exit(self):
+            pass
+
+    show_version(MockContext(), None, True)
+    captured_out, captured_err = capsys.readouterr()
+
+    pyproject = configparser.ConfigParser()
+    pyproject.read(os.path.join(os.path.splitext(__name__)[0], "..", "pyproject.toml"))
+    command_name = pyproject["tool.poetry"]["name"].strip('"')
+    version = pyproject["tool.poetry"]["version"].strip('"')
+    copyright = "Copyright 2019 Dave Rogers. Licensed under the GPLv3. See LICENSE."
+
+    assert captured_out == f"{command_name} version {version}\n{copyright}\n"
+    assert captured_err == ""
