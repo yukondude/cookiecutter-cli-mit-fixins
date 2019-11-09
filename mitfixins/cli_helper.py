@@ -56,26 +56,23 @@ def echo_wrapper(verbosity):
     return echo_func
 
 
-def modify_usage_error():
-    """ Override the standard error behaviour with a splash of colour.
+def show_usage(self, file=None):
+    """ Override the standard usage error message with a splash of colour.
         Taken from https://stackoverflow.com/a/43922088/726
     """
+    if file is None:
+        file = get_text_stderr()
 
-    def show(self, file=None):
-        if file is None:
-            file = get_text_stderr()
+    if self.ctx is not None:
+        color = self.ctx.color
+        echo(self.ctx.get_usage() + "\n", file=file, color=color)
 
-        if self.ctx is not None:
-            color = self.ctx.color
-            echo(self.ctx.get_usage() + "\n", file=file, color=color)
-
-        echo_wrapper(0)(self.format_message(), severity=3)
-        sys.exit(1)
-
-    click.exceptions.UsageError.show = show
+    echo_wrapper(0)(self.format_message(), severity=3)
+    sys.exit(1)
 
 
-modify_usage_error()
+# Replace the usage error display function with show_usage().
+click.exceptions.UsageError.show = show_usage
 
 
 def show_version(ctx, param, value):
