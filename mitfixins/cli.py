@@ -7,7 +7,7 @@
 
 import click
 
-from .cli_helper import echo_wrapper, modify_usage_error, show_version
+from .cli_helper import echo_wrapper, show_version
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -47,6 +47,3 @@ def main(**kwargs):
 
     # Take echo() for a spin.
     _ = echo_wrapper(verbose)
-
-
-modify_usage_error(main)

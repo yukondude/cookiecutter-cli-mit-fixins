@@ -24,3 +24,15 @@ def test_cli_version(switch, version_message):
     result = CliRunner().invoke(main, [switch])
     assert result.exit_code == 0
     assert result.output == version_message
+
+
+@pytest.mark.parametrize("switches,message_fragment", [
+    (("-°",), "no such option"),
+    (("--kannotbe",), "no such option"),
+])
+def test_bad_invocation(switches, message_fragment):
+    result = CliRunner().invoke(main, switches)
+    assert result.exit_code == 1
+    assert result.output.startswith("Usage: ")
+    assert "\nERROR " in result.output
+    assert message_fragment in result.output

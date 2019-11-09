@@ -56,7 +56,7 @@ def echo_wrapper(verbosity):
     return echo_func
 
 
-def modify_usage_error(main_command):
+def modify_usage_error():
     """ Override the standard error behaviour with a splash of colour.
         Taken from https://stackoverflow.com/a/43922088/726
     """
@@ -70,10 +70,12 @@ def modify_usage_error(main_command):
             echo(self.ctx.get_usage() + "\n", file=file, color=color)
 
         echo_wrapper(0)(self.format_message(), severity=3)
-        sys.argv = [sys.argv[0]]
-        main_command()
+        sys.exit(1)
 
     click.exceptions.UsageError.show = show
+
+
+modify_usage_error()
 
 
 def show_version(ctx, param, value):
