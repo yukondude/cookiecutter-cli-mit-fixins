@@ -13,7 +13,7 @@ import click
 
 # noinspection PyProtectedMember
 from click._compat import get_text_stderr
-from click.utils import echo
+from click.utils import echo as click_utils_echo
 
 
 def echo_wrapper(verbosity):
@@ -55,6 +55,30 @@ def echo_wrapper(verbosity):
     return echo_func
 
 
+def print_config(kwargs, excludes):
+    """ Print the contents of the configuration file that corresponds to the current
+        options.
+    """
+    ctx = click.get_current_context()
+    echo = echo_wrapper(3)
+
+    echo(click.get_app_dir(app_name=os.path.splitext(__name__)[0], force_posix=True))
+
+    config = {}
+
+    for option in ctx.command.params:
+        if (
+            isinstance(option, click.core.Option)
+            and not option.is_eager
+            and option.name not in excludes
+        ):
+            config[option.name] = kwargs.get(option.name, option.default)
+
+    echo(config)
+
+    ctx.exit()
+
+
 def show_usage(self, file=None):
     """ Override the standard usage error message with a splash of colour.
         Taken from https://stackoverflow.com/a/43922088/726
@@ -64,7 +88,7 @@ def show_usage(self, file=None):
 
     if self.ctx is not None:
         color = self.ctx.color
-        echo(self.ctx.get_usage() + "\n", file=file, color=color)
+        click_utils_echo(self.ctx.get_usage() + "\n", file=file, color=color)
 
     echo_wrapper(0)(self.format_message(), severity=3)
     self.ctx.exit(1)

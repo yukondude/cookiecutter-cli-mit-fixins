@@ -7,18 +7,23 @@
 
 import click
 
-from .cli_helper import echo_wrapper, show_version
+from .cli_helper import echo_wrapper, print_config, show_version
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
 @click.option(
-    "--option", default=42, show_default=True, type=int, help="A sample option."
+    "--option", "-O", default=42, show_default=True, type=int, help="A sample option."
 )
 @click.option(
     "--dry-run",
     "-D",
     is_flag=True,
     help="Show the intended operations but do not run them (implies --verbose).",
+)
+@click.option(
+    "--print-config",
+    is_flag=True,
+    help="Print the configuration file that corresponds to the current options.",
 )
 @click.option(
     "--verbose",
@@ -40,6 +45,9 @@ from .cli_helper import echo_wrapper, show_version
 def main(**kwargs):
     """ Main help topic.
     """
+    if kwargs["print_config"]:
+        print_config(kwargs, excludes=["print_config"])
+
     is_dry_run = kwargs["dry_run"]
 
     # --dry-run implies at least one --verbose.
