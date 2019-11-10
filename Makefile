@@ -4,8 +4,12 @@
 # <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
-.SILENT: test fulltest
+.SILENT: help test fulltest
 
+help:
+	echo "MAKE TARGETS"
+	echo "test      Run all tests and show coverage."
+	echo "fulltest  Run all tests (verbose), show coverage, and code analyses."
 
 test:
 	coverage run --module py.test
