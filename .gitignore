@@ -1,6 +1,9 @@
 # macOS crapola
 .DS_Store
 
+# Sample configuration file for testing.
+/sample-config.toml
+
 # PyCharm dev-specific settings
 /.idea/workspace.xml
 /.idea/tasks.xml

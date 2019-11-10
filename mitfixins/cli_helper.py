@@ -21,6 +21,23 @@ from click.utils import echo as click_utils_echo
 COMMAND_NAME = os.path.splitext(__name__)[0]
 
 
+def cli_config_path_option(func):
+    """ Decorator to enable the --config-path/-C option.
+    """
+    return click.option(
+        "--config-path",
+        "-C",
+        type=click.Path(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            readable=True,
+            resolve_path=True,
+        ),
+        help="Full path of the TOML-format configuration file.",
+    )(func)
+
+
 def cli_dry_run_option(func):
     """ Decorator to enable the --dry-run/-D option.
     """
