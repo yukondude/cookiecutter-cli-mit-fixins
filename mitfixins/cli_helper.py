@@ -6,6 +6,7 @@
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 import os
+import pathlib
 import sys
 
 import pkg_resources
@@ -16,9 +17,6 @@ import toml
 # noinspection PyProtectedMember
 from click._compat import get_text_stderr
 from click.utils import echo as click_utils_echo
-
-
-COMMAND_NAME = os.path.splitext(__name__)[0]
 
 
 def cli_config_path_option(func):
@@ -86,6 +84,21 @@ def cli_version_option(func):
     )(func)
 
 
+class CliException(click.ClickException):
+    """ ClickException overridden to display errors using echo_wrapper()'s formatting.
+    """
+
+    def show(self, file=None):
+        """ Display the error.
+        """
+        _ = file
+        echo_wrapper(0)(self.format_message(), severity=3)
+
+
+COMMAND_NAME = os.path.splitext(__name__)[0]
+CONFIG_PATH_OPTION = "config_path"
+
+
 class ConfigHelper:
     """ Helper class for configuration file chores.
     """
@@ -93,7 +106,7 @@ class ConfigHelper:
     def __init__(
         self,
         print_option="print_config",
-        path_option="config_path",
+        path_option=CONFIG_PATH_OPTION,
         excluded_options=None,
     ):
         """
@@ -113,18 +126,48 @@ class ConfigHelper:
             f"{COMMAND_NAME}.toml",
         )
 
-    def act(self):
-        """ Evaluate the options passed in the constructor and act accordingly. Changes
-            may be made to the mutable arguments dictionary.
-        """
         if click.get_current_context().params.get(self.print_option, False):
             self.print()
 
-        # TODO read from config file and merge into arguments.
-        # if self.path_option in arguments:
-        #     self.config_path = arguments[self.path_option]
-        # self.config_path = click.get_app_dir(app_name=COMMAND_NAME,
-        #                                      force_posix=True)
+    @staticmethod
+    def config_command_class(path_option=CONFIG_PATH_OPTION):
+        """ Return a custom Command class that loads any configuration file before
+            arguments passed on the command line.
+            Based on https://stackoverflow.com/a/46391887/726
+        """
+
+        class ConfigCommand(click.Command):
+            """ Click Command subclass that loads settings from a configuration file.
+            """
+
+            def invoke(self, ctx):
+                """ Load the configuration settings into the context.
+                """
+                config_path = ctx.params[path_option]
+
+                if not config_path:
+                    config_path = click.get_app_dir(
+                        app_name=COMMAND_NAME, force_posix=True
+                    )
+
+                if pathlib.Path(config_path).exists():
+                    with open(config_path, "r") as config_file:
+                        try:
+                            settings = toml.load(config_file)[COMMAND_NAME]
+                        except toml.TomlDecodeError as exc:
+                            raise CliException(
+                                f"Unable to parse configuration file '{config_path}': "
+                                f"{exc}"
+                            )
+
+                        # TODO: have to interpret in order: default, config, command
+                        for param, value in ctx.params.items():
+                            if value is None and param in settings:
+                                ctx.params[param] = settings[param]
+
+                return super().invoke(ctx)
+
+        return ConfigCommand
 
     def print(self):
         """ Print a sample configuration file that corresponds to the current options

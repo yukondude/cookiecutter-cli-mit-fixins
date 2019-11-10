@@ -18,7 +18,10 @@ from .cli_helper import (
 )
 
 
-@click.command(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.command(
+    cls=ConfigHelper.config_command_class(),
+    context_settings=dict(help_option_names=["-h", "--help"]),
+)
 # Sample options.
 @click.option("--bool-flag/--no-bool-flag", help="A sample Boolean flag option.")
 @click.option(
@@ -35,14 +38,6 @@ from .cli_helper import (
 )
 @click.option(
     "--multivalue", "-M", nargs=3, type=float, help="A sample multivalue (3) option."
-)
-@click.option(
-    "--multivalue-tuple",
-    "-T",
-    default=(False, "nada", 0),
-    show_default=True,
-    type=(bool, str, int),
-    help="sample mulitvalue-tuple option.",
 )
 @click.option(
     "--option", "-o", default=42, show_default=True, type=int, help="A sample option."
@@ -67,7 +62,7 @@ from .cli_helper import (
 def main(**kwargs):
     """ Main help topic.
     """
-    ConfigHelper().act()
+    ConfigHelper()
 
     is_dry_run = kwargs["dry_run"]
 
@@ -75,4 +70,4 @@ def main(**kwargs):
     verbose = max(kwargs["verbose"], 1 if is_dry_run else 0)
 
     # Take echo() for a spin.
-    _ = echo_wrapper(verbose)
+    echo_wrapper(verbose)(kwargs)
