@@ -11,10 +11,14 @@ import sys
 import pkg_resources
 
 import click
+import toml
 
 # noinspection PyProtectedMember
 from click._compat import get_text_stderr
 from click.utils import echo as click_utils_echo
+
+
+COMMAND_NAME = os.path.splitext(__name__)[0]
 
 
 class ConfigHelper:
@@ -27,29 +31,67 @@ class ConfigHelper:
         path_option="config_path",
         excluded_options=None,
     ):
+        """
+        :param print_option: The name of the flag option to print the sample config
+        file.
+        :param path_option: The name of the option for choosing the config file path.
+        :param excluded_options: Option names to exclude from all configuration-related
+        activities.
+        """
         self.excluded_options = excluded_options if excluded_options is not None else []
         self.excluded_options.append(print_option)
         self.excluded_options.append(path_option)
         self.print_option = print_option
         self.path_option = path_option
+        self.config_file_path = os.path.join(
+            click.get_app_dir(app_name=COMMAND_NAME, force_posix=True),
+            f"{COMMAND_NAME}.toml",
+        )
 
     def act(self, arguments):
-        """ Evaluate the options passed in the constructor and act accordingly.
+        """ Evaluate the options passed in the constructor and act accordingly. Changes
+            may be made to the mutable arguments dictionary.
         """
         if arguments.get(self.print_option, False):
-            self._print(arguments)
+            self.print(arguments)
 
+        # TODO read from config file and merge into arguments.
         # if self.path_option in arguments:
         #     self.config_path = arguments[self.path_option]
-        # self.config_path = click.get_app_dir(app_name=os.path.splitext(__name__)[0],
+        # self.config_path = click.get_app_dir(app_name=COMMAND_NAME,
         #                                      force_posix=True)
 
-    def _print(self, arguments):
+    def print(self, arguments):
         """ Print a sample configuration file that corresponds to the current options
             and exit.
         """
+
+        def render(settings):
+            """ Render settings into a TOML-format configuration file string.
+            """
+            lines = [
+                f"# Sample {COMMAND_NAME} configuration file, by default located at "
+                f"{self.config_file_path}.",
+                "# Configuration options already set to the default value are "
+                "commented-out.",
+                "",
+                f"[{COMMAND_NAME}]",
+                "",
+            ]
+
+            for setting_name in sorted(settings):
+                setting = settings[setting_name]
+
+                if setting.argument is not None and setting.argument != ():
+                    lines.append(f"# {setting.help}")
+                    prefix = "# " if setting.argument == setting.default else ""
+                    toml_setting = toml.dumps({setting_name: setting.argument})
+                    lines.append(f"{prefix}{toml_setting}")
+
+            return "\n".join(lines).strip()
+
         ctx = click.get_current_context()
-        config = {}
+        options = {}
 
         for option in ctx.command.params:
             if (
@@ -57,9 +99,10 @@ class ConfigHelper:
                 and not option.is_eager
                 and option.name not in self.excluded_options
             ):
-                config[option.name] = arguments.get(option.name, option.default)
+                option.__dict__["argument"] = arguments.get(option.name, option.default)
+                options[option.name] = option
 
-        echo_wrapper(3)(config)
+        echo_wrapper(3)(render(options))
         ctx.exit()
 
 
@@ -129,13 +172,11 @@ def show_version(ctx, param, value):
     if not value or ctx.resilient_parsing:
         return
 
-    command_name = os.path.splitext(__name__)[0]
-
     try:
-        version = pkg_resources.get_distribution(command_name).version
+        version = pkg_resources.get_distribution(COMMAND_NAME).version
     except pkg_resources.DistributionNotFound:  # pragma: no cover
-        version = f"({command_name} is not registered)"
+        version = f"({COMMAND_NAME} is not registered)"
 
-    click.echo(f"{command_name} version {version}")
+    click.echo(f"{COMMAND_NAME} version {version}")
     click.echo("Copyright 2019 Dave Rogers. Licensed under the GPLv3. See LICENSE.")
     ctx.exit()

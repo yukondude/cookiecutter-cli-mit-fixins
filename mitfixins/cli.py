@@ -19,17 +19,8 @@ from .cli_helper import ConfigHelper, echo_wrapper, show_version
     type=click.Choice(("ALP", "BET", "GAM")),
     help="A sample choice option.",
 )
-@click.option(
-    "--feature-a", "feature", flag_value="a", help="A sample feature A option."
-)
-@click.option(
-    "--feature-b",
-    "feature",
-    default=True,
-    flag_value="b",
-    show_default=True,
-    help="A sample feature B option.",
-)
+@click.option("--feature-a", "feature", flag_value="a", help="A sample feature option.")
+@click.option("--feature-b", "feature", flag_value="b", help="A sample feature option.")
 @click.option("--flag", "-f", is_flag=True, help="A sample flag.")
 @click.option(
     "--multiple", "-m", multiple=True, type=str, help="A sample multiple option."
