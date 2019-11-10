@@ -1,0 +1,2 @@
+#!/bin/bash
+mitfixins --print-config -c GAM --feature-a -m apple -m bravo -m charlie -M 14.5 15.3 12.4 -f --bool-flag -r 13 -vv --secret ALBATROSS --multivalue-tuple True Quux 12 Makefile .
