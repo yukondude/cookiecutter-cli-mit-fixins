@@ -35,8 +35,9 @@ repos:
     exclude: '(test_.+|conftest)\.py'
     args:
     - --disable=bad-continuation  # When pylint and black squabble.
-    - --disable=fixme  # Allow TODO comments
-    - --disable=import-error  # pylint plugin has trouble with virtualenv imports
+    - --disable=fixme  # Allow TODO comments.
+    - --disable=import-error  # pylint plugin has trouble with virtualenv imports.
+    - --disable=too-few-public-methods  # Sheesh, pylint, give it a rest.
 - repo: https://github.com/Lucas-C/pre-commit-hooks
   rev: v1.1.7
   hooks:

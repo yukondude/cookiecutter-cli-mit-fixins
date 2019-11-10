@@ -17,6 +17,52 @@ from click._compat import get_text_stderr
 from click.utils import echo as click_utils_echo
 
 
+class ConfigHelper:
+    """ Helper class for configuration file chores.
+    """
+
+    def __init__(
+        self,
+        print_option="print_config",
+        path_option="config_path",
+        excluded_options=None,
+    ):
+        self.excluded_options = excluded_options if excluded_options is not None else []
+        self.excluded_options.append(print_option)
+        self.excluded_options.append(path_option)
+        self.print_option = print_option
+        self.path_option = path_option
+
+    def act(self, arguments):
+        """ Evaluate the options passed in the constructor and act accordingly.
+        """
+        if arguments.get(self.print_option, False):
+            self._print(arguments)
+
+        # if self.path_option in arguments:
+        #     self.config_path = arguments[self.path_option]
+        # self.config_path = click.get_app_dir(app_name=os.path.splitext(__name__)[0],
+        #                                      force_posix=True)
+
+    def _print(self, arguments):
+        """ Print a sample configuration file that corresponds to the current options
+            and exit.
+        """
+        ctx = click.get_current_context()
+        config = {}
+
+        for option in ctx.command.params:
+            if (
+                isinstance(option, click.core.Option)
+                and not option.is_eager
+                and option.name not in self.excluded_options
+            ):
+                config[option.name] = arguments.get(option.name, option.default)
+
+        echo_wrapper(3)(config)
+        ctx.exit()
+
+
 def echo_wrapper(verbosity):
     """ Return an echo function that displays or doesn't based on the verbosity count.
     """
@@ -54,30 +100,6 @@ def echo_wrapper(verbosity):
             click.secho(f"{prefix}{message}", err=is_err, **style)
 
     return echo_func
-
-
-def print_config(kwargs, excludes):
-    """ Print the contents of the configuration file that corresponds to the current
-        options.
-    """
-    ctx = click.get_current_context()
-    echo = echo_wrapper(3)
-
-    echo(click.get_app_dir(app_name=os.path.splitext(__name__)[0], force_posix=True))
-
-    config = {}
-
-    for option in ctx.command.params:
-        if (
-            isinstance(option, click.core.Option)
-            and not option.is_eager
-            and option.name not in excludes
-        ):
-            config[option.name] = kwargs.get(option.name, option.default)
-
-    echo(config)
-
-    ctx.exit()
 
 
 def show_usage(self, file=None):
