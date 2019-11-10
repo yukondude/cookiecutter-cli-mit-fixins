@@ -4,7 +4,7 @@
 # <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
-.SILENT: test
+.SILENT: test fulltest
 
 
 test:
@@ -13,4 +13,12 @@ test:
 
 fulltest:
 	coverage run --module py.test --verbose
+	echo
+	echo "Coverage Statistics"
 	coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'
+	echo
+	echo "Radon Cyclomatic Complexity (CC)"
+	radon cc --average mitfixins
+	echo
+	echo "Radon Maintainability Index (MI)"
+	radon mi --show --sort mitfixins
