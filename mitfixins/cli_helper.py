@@ -6,6 +6,7 @@
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 import os
+import sys
 
 import pkg_resources
 
@@ -91,7 +92,7 @@ def show_usage(self, file=None):
         click_utils_echo(self.ctx.get_usage() + "\n", file=file, color=color)
 
     echo_wrapper(0)(self.format_message(), severity=3)
-    self.ctx.exit(1)
+    sys.exit(1)
 
 
 # Replace the usage error display function with show_usage().
