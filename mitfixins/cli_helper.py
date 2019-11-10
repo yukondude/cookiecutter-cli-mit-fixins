@@ -113,12 +113,12 @@ class ConfigHelper:
             f"{COMMAND_NAME}.toml",
         )
 
-    def act(self, arguments):
+    def act(self):
         """ Evaluate the options passed in the constructor and act accordingly. Changes
             may be made to the mutable arguments dictionary.
         """
-        if arguments.get(self.print_option, False):
-            self.print(arguments)
+        if click.get_current_context().params.get(self.print_option, False):
+            self.print()
 
         # TODO read from config file and merge into arguments.
         # if self.path_option in arguments:
@@ -126,12 +126,12 @@ class ConfigHelper:
         # self.config_path = click.get_app_dir(app_name=COMMAND_NAME,
         #                                      force_posix=True)
 
-    def print(self, arguments):
+    def print(self):
         """ Print a sample configuration file that corresponds to the current options
             and exit.
         """
 
-        def render(settings):
+        def render(settings, arguments):
             """ Render settings into a TOML-format configuration file string.
             """
             lines = [
@@ -146,11 +146,12 @@ class ConfigHelper:
 
             for setting_name in sorted(settings):
                 setting = settings[setting_name]
+                argument = arguments[setting_name]
 
-                if setting.argument is not None and setting.argument != ():
+                if argument is not None and argument != ():
                     lines.append(f"# {setting.help}")
-                    prefix = "# " if setting.argument == setting.default else ""
-                    toml_setting = toml.dumps({setting_name: setting.argument})
+                    prefix = "# " if argument == setting.default else ""
+                    toml_setting = toml.dumps({setting_name: argument})
                     lines.append(f"{prefix}{toml_setting}")
 
             return "\n".join(lines).strip()
@@ -164,10 +165,9 @@ class ConfigHelper:
                 and not option.is_eager
                 and option.name not in self.excluded_options
             ):
-                option.__dict__["argument"] = arguments.get(option.name, option.default)
                 options[option.name] = option
 
-        echo_wrapper(3)(render(options))
+        echo_wrapper(3)(render(options, ctx.params))
         ctx.exit()
 
 

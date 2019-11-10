@@ -67,7 +67,7 @@ from .cli_helper import (
 def main(**kwargs):
     """ Main help topic.
     """
-    ConfigHelper().act(kwargs)
+    ConfigHelper().act()
 
     is_dry_run = kwargs["dry_run"]
 
