@@ -7,7 +7,14 @@
 
 import click
 
-from .cli_helper import ConfigHelper, echo_wrapper, show_version
+from .cli_helper import (
+    ConfigHelper,
+    echo_wrapper,
+    cli_dry_run_option,
+    cli_print_config_option,
+    cli_verbose_option,
+    cli_version_option,
+)
 
 
 @click.command(context_settings=dict(help_option_names=["-h", "--help"]))
@@ -26,7 +33,7 @@ from .cli_helper import ConfigHelper, echo_wrapper, show_version
     "--multiple", "-m", multiple=True, type=str, help="A sample multiple option."
 )
 @click.option(
-    "--multivalue", "-M", nargs=3, type=float, help="A sample 3-value option."
+    "--multivalue", "-M", nargs=3, type=float, help="A sample multivalue (3) option."
 )
 @click.option(
     "--multivalue-tuple",
@@ -34,7 +41,7 @@ from .cli_helper import ConfigHelper, echo_wrapper, show_version
     default=(False, "nada", 0),
     show_default=True,
     type=(bool, str, int),
-    help="sample 3-value-tuple option.",
+    help="sample mulitvalue-tuple option.",
 )
 @click.option(
     "--option", "-o", default=42, show_default=True, type=int, help="A sample option."
@@ -47,35 +54,11 @@ from .cli_helper import ConfigHelper, echo_wrapper, show_version
 )
 @click.option("--secret", hidden=True, help="A sample hidden option.")
 # Standard options.
-@click.option(
-    "--dry-run",
-    "-D",
-    is_flag=True,
-    help="Show the intended operations but do not run them (implies --verbose).",
-)
-@click.option(
-    "--print-config",
-    is_flag=True,
-    help="Print a sample configuration file that corresponds to the current options "
-    "and exit",
-)
-@click.option(
-    "--verbose",
-    "-v",
-    count=True,
-    help="Increase the verbosity of status messages: use once for normal output, twice "
-    "for additional output, and thrice for debug-level output.",
-)
-@click.option(
-    "--version",
-    "-V",
-    is_flag=True,
-    callback=show_version,
-    expose_value=False,
-    is_eager=True,
-    help="Show the version number and exit.",
-)
-# Sample argument.
+@cli_dry_run_option
+@cli_print_config_option
+@cli_verbose_option
+@cli_version_option
+# Sample arguments.
 @click.argument("FILE", type=click.File("r"))
 @click.argument("PATH", type=click.Path(exists=True))
 @click.argument("STUFF", nargs=-1)

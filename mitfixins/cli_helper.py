@@ -21,6 +21,54 @@ from click.utils import echo as click_utils_echo
 COMMAND_NAME = os.path.splitext(__name__)[0]
 
 
+def cli_dry_run_option(func):
+    """ Decorator to enable the --dry-run/-D option.
+    """
+    return click.option(
+        "--dry-run",
+        "-D",
+        is_flag=True,
+        help="Show the intended operations but do not run them (implies --verbose).",
+    )(func)
+
+
+def cli_print_config_option(func):
+    """ Decorator to enable the --print-config option.
+    """
+    return click.option(
+        "--print-config",
+        is_flag=True,
+        help="Print a sample configuration file that corresponds to the command line "
+        "options and exit. Ignores the settings from a configuration file.",
+    )(func)
+
+
+def cli_verbose_option(func):
+    """ Decorator to enable the --verbose/-v option.
+    """
+    return click.option(
+        "--verbose",
+        "-v",
+        count=True,
+        help="Increase the verbosity of status messages: use once for normal output, "
+        "twice for additional output, and thrice for debug-level output.",
+    )(func)
+
+
+def cli_version_option(func):
+    """ Decorator to enable the --version/-V option.
+    """
+    return click.option(
+        "--version",
+        "-V",
+        is_flag=True,
+        callback=show_version,
+        expose_value=False,
+        is_eager=True,
+        help="Show the version number and exit.",
+    )(func)
+
+
 class ConfigHelper:
     """ Helper class for configuration file chores.
     """
@@ -145,7 +193,7 @@ def echo_wrapper(verbosity):
     return echo_func
 
 
-def show_usage(self, file=None):
+def _show_usage(self, file=None):
     """ Override the standard usage error message with a splash of colour.
         Taken from https://stackoverflow.com/a/43922088/726
     """
@@ -161,7 +209,7 @@ def show_usage(self, file=None):
 
 
 # Replace the usage error display function with show_usage().
-click.exceptions.UsageError.show = show_usage
+click.exceptions.UsageError.show = _show_usage
 
 
 def show_version(ctx, param, value):
