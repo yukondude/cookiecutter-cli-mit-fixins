@@ -130,10 +130,25 @@ def config_command_class(path_option=CONFIG_FILE_OPTION):
                             f"{exc}"
                         )
 
-                    # TODO: have to interpret in order: default, config, command
-                    for param, value in ctx.params.items():
-                        if value is None and param in settings:
-                            ctx.params[param] = settings[param]
+                    for option in ctx.command.params:
+                        if option.name not in ctx.params or not isinstance(
+                            option, click.core.Option
+                        ):
+                            continue
+
+                        # First choice for option value is the declared default. Second
+                        # choice is the configuration file setting.
+                        value = settings.get(option.name, option.default)
+
+                        # Third choice is the value passed on the command line. Have to
+                        # check manually because the context already includes the
+                        # default if the option wasn't specified. Click doesn't seem to
+                        # report if a value arrived via the default or explicitly on the
+                        # command line.
+                        if is_option_in_command_line(option):
+                            value = ctx.params[option.name]
+
+                        ctx.params[option.name] = value
 
             return super().invoke(ctx)
 
@@ -232,6 +247,29 @@ def handle_print_config_option(
 
     echo_wrapper(3)(render_toml(settings=options, arguments=ctx.params))
     ctx.exit()
+
+
+def is_option_in_command_line(option):
+    """ Return True if the given option switches appear on the command line. This is,
+        admittedly, a bit of hackish guess.
+    """
+    for command_argument in sys.argv[1:]:
+        for option_switch in option.opts + option.secondary_opts:
+            if option_switch.startswith("--"):
+                # Long-form option switch.
+                if option_switch == command_argument:
+                    return True
+            else:
+                # Short-form option switch.
+                if (
+                    command_argument.startswith("-")
+                    and len(command_argument) >= 2
+                    and command_argument[1] != "-"
+                ):
+                    if option_switch[-1] in command_argument:
+                        return True
+
+    return False
 
 
 def _show_usage(self, file=None):
