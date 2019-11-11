@@ -96,122 +96,48 @@ class CliException(click.ClickException):
 
 
 COMMAND_NAME = os.path.splitext(__name__)[0]
+DEFAULT_CONFIG_FILE_PATH = os.path.join(
+    click.get_app_dir(app_name=COMMAND_NAME, force_posix=True), f"{COMMAND_NAME}.toml"
+)
 CONFIG_PATH_OPTION = "config_path"
 
 
-class ConfigHelper:
-    """ Helper class for configuration file chores.
+def config_command_class(path_option=CONFIG_PATH_OPTION):
+    """ Return a custom Command class that loads any configuration file before
+        arguments passed on the command line.
+        Based on https://stackoverflow.com/a/46391887/726
     """
 
-    def __init__(
-        self,
-        print_option="print_config",
-        path_option=CONFIG_PATH_OPTION,
-        excluded_options=None,
-    ):
-        """
-        :param print_option: The name of the flag option to print the sample config
-        file.
-        :param path_option: The name of the option for choosing the config file path.
-        :param excluded_options: Option names to exclude from all configuration-related
-        activities.
-        """
-        self.excluded_options = excluded_options if excluded_options is not None else []
-        self.excluded_options.append(print_option)
-        self.excluded_options.append(path_option)
-        self.print_option = print_option
-        self.path_option = path_option
-        self.config_file_path = os.path.join(
-            click.get_app_dir(app_name=COMMAND_NAME, force_posix=True),
-            f"{COMMAND_NAME}.toml",
-        )
-
-        if click.get_current_context().params.get(self.print_option, False):
-            self.print()
-
-    @staticmethod
-    def config_command_class(path_option=CONFIG_PATH_OPTION):
-        """ Return a custom Command class that loads any configuration file before
-            arguments passed on the command line.
-            Based on https://stackoverflow.com/a/46391887/726
+    class ConfigCommand(click.Command):
+        """ Click Command subclass that loads settings from a configuration file.
         """
 
-        class ConfigCommand(click.Command):
-            """ Click Command subclass that loads settings from a configuration file.
+        def invoke(self, ctx):
+            """ Load the configuration settings into the context.
             """
+            config_path = ctx.params[path_option]
 
-            def invoke(self, ctx):
-                """ Load the configuration settings into the context.
-                """
-                config_path = ctx.params[path_option]
+            if not config_path:
+                config_path = DEFAULT_CONFIG_FILE_PATH
 
-                if not config_path:
-                    config_path = click.get_app_dir(
-                        app_name=COMMAND_NAME, force_posix=True
-                    )
+            if pathlib.Path(config_path).exists():
+                with open(config_path, "r") as config_file:
+                    try:
+                        settings = toml.load(config_file)[COMMAND_NAME]
+                    except toml.TomlDecodeError as exc:
+                        raise CliException(
+                            f"Unable to parse configuration file '{config_path}': "
+                            f"{exc}"
+                        )
 
-                if pathlib.Path(config_path).exists():
-                    with open(config_path, "r") as config_file:
-                        try:
-                            settings = toml.load(config_file)[COMMAND_NAME]
-                        except toml.TomlDecodeError as exc:
-                            raise CliException(
-                                f"Unable to parse configuration file '{config_path}': "
-                                f"{exc}"
-                            )
+                    # TODO: have to interpret in order: default, config, command
+                    for param, value in ctx.params.items():
+                        if value is None and param in settings:
+                            ctx.params[param] = settings[param]
 
-                        # TODO: have to interpret in order: default, config, command
-                        for param, value in ctx.params.items():
-                            if value is None and param in settings:
-                                ctx.params[param] = settings[param]
+            return super().invoke(ctx)
 
-                return super().invoke(ctx)
-
-        return ConfigCommand
-
-    def print(self):
-        """ Print a sample configuration file that corresponds to the current options
-            and exit.
-        """
-
-        def render(settings, arguments):
-            """ Render settings into a TOML-format configuration file string.
-            """
-            lines = [
-                f"# Sample {COMMAND_NAME} configuration file, by default located at "
-                f"{self.config_file_path}.",
-                "# Configuration options already set to the default value are "
-                "commented-out.",
-                "",
-                f"[{COMMAND_NAME}]",
-                "",
-            ]
-
-            for setting_name in sorted(settings):
-                setting = settings[setting_name]
-                argument = arguments[setting_name]
-
-                if argument is not None and argument != ():
-                    lines.append(f"# {setting.help}")
-                    prefix = "# " if argument == setting.default else ""
-                    toml_setting = toml.dumps({setting_name: argument})
-                    lines.append(f"{prefix}{toml_setting}")
-
-            return "\n".join(lines).strip()
-
-        ctx = click.get_current_context()
-        options = {}
-
-        for option in ctx.command.params:
-            if (
-                isinstance(option, click.core.Option)
-                and not option.is_eager
-                and option.name not in self.excluded_options
-            ):
-                options[option.name] = option
-
-        echo_wrapper(3)(render(options, ctx.params))
-        ctx.exit()
+    return ConfigCommand
 
 
 def echo_wrapper(verbosity):
@@ -251,6 +177,56 @@ def echo_wrapper(verbosity):
             click.secho(f"{prefix}{message}", err=is_err, **style)
 
     return echo_func
+
+
+def handle_print_config_option(
+    print_option="print_config", path_option=CONFIG_PATH_OPTION, excluded_options=None
+):
+    """ Print a sample configuration file that corresponds to the current options
+        and exit.
+    """
+
+    def render(settings, arguments):
+        """ Render settings into a TOML-format configuration file string.
+        """
+        lines = [
+            f"# Sample {COMMAND_NAME} configuration file, by default located at "
+            f"{DEFAULT_CONFIG_FILE_PATH}.",
+            "# Configuration options already set to the default value are "
+            "commented-out.",
+            "",
+            f"[{COMMAND_NAME}]",
+            "",
+        ]
+
+        for setting_name in sorted(settings):
+            setting = settings[setting_name]
+            argument = arguments[setting_name]
+
+            if argument is not None and argument != ():
+                lines.append(f"# {setting.help}")
+                prefix = "# " if argument == setting.default else ""
+                toml_setting = toml.dumps({setting_name: argument})
+                lines.append(f"{prefix}{toml_setting}")
+
+        return "\n".join(lines).strip()
+
+    excluded_options = excluded_options if excluded_options is not None else []
+    excluded_options.extend((print_option, path_option))
+
+    ctx = click.get_current_context()
+    options = {}
+
+    for option in ctx.command.params:
+        if (
+            isinstance(option, click.core.Option)
+            and not option.is_eager
+            and option.name not in excluded_options
+        ):
+            options[option.name] = option
+
+    echo_wrapper(3)(render(options, ctx.params))
+    ctx.exit()
 
 
 def _show_usage(self, file=None):

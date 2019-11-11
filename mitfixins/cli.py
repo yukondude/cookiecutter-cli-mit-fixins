@@ -13,13 +13,14 @@ from .cli_helper import (
     cli_print_config_option,
     cli_verbose_option,
     cli_version_option,
-    ConfigHelper,
+    config_command_class,
     echo_wrapper,
+    handle_print_config_option,
 )
 
 
 @click.command(
-    cls=ConfigHelper.config_command_class(),
+    cls=config_command_class(),
     context_settings=dict(help_option_names=["-h", "--help"]),
 )
 # Sample options.
@@ -62,7 +63,7 @@ from .cli_helper import (
 def main(**kwargs):
     """ Main help topic.
     """
-    ConfigHelper()
+    handle_print_config_option()
 
     is_dry_run = kwargs["dry_run"]
 
