@@ -23,7 +23,7 @@ COMMAND_NAME = os.path.splitext(__name__)[0]
 DEFAULT_CONFIG_FILE_PATH = os.path.join(
     click.get_app_dir(app_name=COMMAND_NAME, force_posix=True), f"{COMMAND_NAME}.toml"
 )
-CONFIG_FILE_OPTION = "config_file"
+DEFAULT_CONFIG_FILE_OPTION = "config_file"
 
 
 def cli_config_file_option(func):
@@ -102,7 +102,7 @@ class CliException(click.ClickException):
         echo_wrapper(0)(self.format_message(), severity=3)
 
 
-def config_command_class(path_option=CONFIG_FILE_OPTION):
+def config_command_class(config_file_option=DEFAULT_CONFIG_FILE_OPTION):
     """ Return a custom Command class that loads any configuration file before
         arguments passed on the command line.
         Based on https://stackoverflow.com/a/46391887/726
@@ -115,7 +115,7 @@ def config_command_class(path_option=CONFIG_FILE_OPTION):
         def invoke(self, ctx):
             """ Load the configuration settings into the context.
             """
-            config_path = ctx.params[path_option]
+            config_path = ctx.params[config_file_option]
 
             if not config_path:
                 config_path = DEFAULT_CONFIG_FILE_PATH
@@ -145,7 +145,7 @@ def config_command_class(path_option=CONFIG_FILE_OPTION):
                         # default if the option wasn't specified. Click doesn't seem to
                         # report if a value arrived via the default or explicitly on the
                         # command line.
-                        if is_option_switches_in_arguments(
+                        if is_option_switch_in_arguments(
                             option.opts + option.secondary_opts, sys.argv[1:]
                         ):
                             value = ctx.params[option.name]
@@ -198,7 +198,7 @@ def echo_wrapper(verbosity):
 
 def handle_print_config_option(
     print_option="print_config",
-    config_file_option=CONFIG_FILE_OPTION,
+    config_file_option=DEFAULT_CONFIG_FILE_OPTION,
     excluded_options=None,
 ):
     """ Print a sample configuration file that corresponds to the current options and
@@ -251,7 +251,7 @@ def handle_print_config_option(
     ctx.exit()
 
 
-def is_option_switches_in_arguments(switches, arguments):
+def is_option_switch_in_arguments(switches, arguments):
     """ Return True if the given option switches appear on the command line. This is,
         admittedly, a bit of hackish guess.
     """
