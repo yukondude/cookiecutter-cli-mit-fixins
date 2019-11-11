@@ -145,7 +145,9 @@ def config_command_class(path_option=CONFIG_FILE_OPTION):
                         # default if the option wasn't specified. Click doesn't seem to
                         # report if a value arrived via the default or explicitly on the
                         # command line.
-                        if is_option_in_command_line(option):
+                        if is_option_switches_in_arguments(
+                            option.opts + option.secondary_opts, sys.argv[1:]
+                        ):
                             value = ctx.params[option.name]
 
                         ctx.params[option.name] = value
@@ -249,25 +251,19 @@ def handle_print_config_option(
     ctx.exit()
 
 
-def is_option_in_command_line(option):
+def is_option_switches_in_arguments(switches, arguments):
     """ Return True if the given option switches appear on the command line. This is,
         admittedly, a bit of hackish guess.
     """
-    for command_argument in sys.argv[1:]:
-        for option_switch in option.opts + option.secondary_opts:
-            if option_switch.startswith("--"):
-                # Long-form option switch.
-                if option_switch == command_argument:
-                    return True
-            else:
-                # Short-form option switch.
-                if (
-                    command_argument.startswith("-")
-                    and len(command_argument) >= 2
-                    and command_argument[1] != "-"
-                ):
-                    if option_switch[-1] in command_argument:
-                        return True
+    for argument in [a for a in arguments if a.startswith("-")]:
+        for switch in switches:
+            if argument.startswith(switch) or (
+                len(argument) >= 2
+                and argument[1] != "-"
+                and len(switch) == 2
+                and switch[1] in argument
+            ):
+                return True
 
     return False
 
