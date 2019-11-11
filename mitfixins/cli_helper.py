@@ -19,11 +19,18 @@ from click._compat import get_text_stderr
 from click.utils import echo as click_utils_echo
 
 
-def cli_config_path_option(func):
-    """ Decorator to enable the --config-path/-C option.
+COMMAND_NAME = os.path.splitext(__name__)[0]
+DEFAULT_CONFIG_FILE_PATH = os.path.join(
+    click.get_app_dir(app_name=COMMAND_NAME, force_posix=True), f"{COMMAND_NAME}.toml"
+)
+CONFIG_FILE_OPTION = "config_file"
+
+
+def cli_config_file_option(func):
+    """ Decorator to enable the --config-file/-C option.
     """
     return click.option(
-        "--config-path",
+        "--config-file",
         "-C",
         type=click.Path(
             exists=True,
@@ -53,8 +60,8 @@ def cli_print_config_option(func):
     return click.option(
         "--print-config",
         is_flag=True,
-        help="Print a sample configuration file that corresponds to the command line "
-        "options and exit. Ignores the settings from a configuration file.",
+        help="Print a sample configuration file that corresponds to the command "
+        "line options and exit. Ignores the settings from a configuration file.",
     )(func)
 
 
@@ -95,14 +102,7 @@ class CliException(click.ClickException):
         echo_wrapper(0)(self.format_message(), severity=3)
 
 
-COMMAND_NAME = os.path.splitext(__name__)[0]
-DEFAULT_CONFIG_FILE_PATH = os.path.join(
-    click.get_app_dir(app_name=COMMAND_NAME, force_posix=True), f"{COMMAND_NAME}.toml"
-)
-CONFIG_PATH_OPTION = "config_path"
-
-
-def config_command_class(path_option=CONFIG_PATH_OPTION):
+def config_command_class(path_option=CONFIG_FILE_OPTION):
     """ Return a custom Command class that loads any configuration file before
         arguments passed on the command line.
         Based on https://stackoverflow.com/a/46391887/726
@@ -180,13 +180,15 @@ def echo_wrapper(verbosity):
 
 
 def handle_print_config_option(
-    print_option="print_config", path_option=CONFIG_PATH_OPTION, excluded_options=None
+    print_option="print_config",
+    config_file_option=CONFIG_FILE_OPTION,
+    excluded_options=None,
 ):
-    """ Print a sample configuration file that corresponds to the current options
-        and exit.
+    """ Print a sample configuration file that corresponds to the current options and
+        exit.
     """
 
-    def render(settings, arguments):
+    def render_toml(settings, arguments):
         """ Render settings into a TOML-format configuration file string.
         """
         lines = [
@@ -211,10 +213,14 @@ def handle_print_config_option(
 
         return "\n".join(lines).strip()
 
-    excluded_options = excluded_options if excluded_options is not None else []
-    excluded_options.extend((print_option, path_option))
-
     ctx = click.get_current_context()
+
+    print(ctx.params)
+    if not ctx.params[print_option]:
+        return
+
+    excluded_options = excluded_options if excluded_options is not None else []
+    excluded_options.extend((print_option, config_file_option))
     options = {}
 
     for option in ctx.command.params:
@@ -225,7 +231,7 @@ def handle_print_config_option(
         ):
             options[option.name] = option
 
-    echo_wrapper(3)(render(options, ctx.params))
+    echo_wrapper(3)(render_toml(settings=options, arguments=ctx.params))
     ctx.exit()
 
 

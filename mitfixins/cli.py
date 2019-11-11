@@ -8,7 +8,7 @@
 import click
 
 from .cli_helper import (
-    cli_config_path_option,
+    cli_config_file_option,
     cli_dry_run_option,
     cli_print_config_option,
     cli_verbose_option,
@@ -51,7 +51,7 @@ from .cli_helper import (
 )
 @click.option("--secret", hidden=True, help="A sample hidden option.")
 # Standard options.
-@cli_config_path_option
+@cli_config_file_option
 @cli_dry_run_option
 @cli_print_config_option
 @cli_verbose_option
