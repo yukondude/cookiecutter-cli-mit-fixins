@@ -215,7 +215,6 @@ def handle_print_config_option(
 
     ctx = click.get_current_context()
 
-    print(ctx.params)
     if not ctx.params[print_option]:
         return
 
