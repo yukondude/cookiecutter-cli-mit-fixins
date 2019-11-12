@@ -7,7 +7,11 @@
 
 import pytest
 
-from mitfixins.cli_helper import echo_wrapper, show_version
+from mitfixins.cli_helper import (
+    echo_wrapper,
+    is_option_switch_in_arguments,
+    show_version,
+)
 
 
 @pytest.mark.parametrize("arguments,expected", [
@@ -59,6 +63,28 @@ def test_echo_wrapper(capsys, arguments, expected):
     captured_out, captured_err = capsys.readouterr()
     assert captured_out.strip() == expected_out
     assert captured_err.strip() == expected_err
+
+
+@pytest.mark.parametrize("switches,short_switches,arguments,expected", [
+    # switches,         short_switches, arguments,                   expected
+    (("-a", "--apple"), "aBcD",         ("",),                        False),
+    (("-a", "--apple"), "aBcD",         ("--banana",),                False),
+    (("-a", "--apple"), "aBcD",         ("-a",),                      True),
+    (("-a", "--apple"), "aBcD",         ("--apple",),                 True),
+    (("-a", "--apple"), "aBcD",         ("-BcDaqux",),                True),
+    (("-a", "--apple"), "aBcD",         ("-BcEaqux",),                False),
+    (("-p", "--apple"), "aBcD",         ("apple",),                   False),
+    (("-p", "--apple"), "aBcD",         ("-apple",),                  False),
+    (("-p", "--apple"), "aBcD",         ("---apple",),                False),
+    (("-p", "--apple"), "aBcD",         ("p",),                       False),
+    (("-p", "--apple"), "aBcD",         ("--p",),                     False),
+    (("-a", "--apple"), "aBcD",         ("-D", "--banana", "-a"),     True),
+    (("-a", "--apple"), "aBcD",         ("-D", "--apple", "food"),    True),
+    (("-a", "--apple"), "aBcD",         ("-D", "--apple=food", "-a"), True),
+])
+def test_is_option_switch_in_arguments(switches, short_switches, arguments, expected):
+    assert is_option_switch_in_arguments(switches, short_switches, arguments) == \
+           expected
 
 
 def test_show_version_fail(capsys):
