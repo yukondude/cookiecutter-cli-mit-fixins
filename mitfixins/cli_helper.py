@@ -24,6 +24,7 @@ DEFAULT_CONFIG_FILE_PATH = os.path.join(
     click.get_app_dir(app_name=COMMAND_NAME, force_posix=True), f"{COMMAND_NAME}.toml"
 )
 DEFAULT_CONFIG_FILE_OPTION = "config_file"
+DEFAULT_PRINT_CONFIG_OPTION = "print_config"
 
 
 def cli_config_file_option(func):
@@ -214,39 +215,13 @@ def echo_wrapper(verbosity):
 
 
 def handle_print_config_option(
-    print_option="print_config",
+    print_option=DEFAULT_PRINT_CONFIG_OPTION,
     config_file_option=DEFAULT_CONFIG_FILE_OPTION,
     excluded_options=None,
 ):
     """ Print a sample configuration file that corresponds to the current options and
         exit.
     """
-
-    def render_toml(settings, arguments):
-        """ Render settings into a TOML-format configuration file string.
-        """
-        lines = [
-            f"# Sample {COMMAND_NAME} configuration file, by default located at "
-            f"{DEFAULT_CONFIG_FILE_PATH}.",
-            "# Configuration options already set to the default value are "
-            "commented-out.",
-            "",
-            f"[{COMMAND_NAME}]",
-            "",
-        ]
-
-        for setting_name in sorted(settings):
-            setting = settings[setting_name]
-            argument = arguments[setting_name]
-
-            if argument is not None and argument != ():
-                lines.append(f"# {setting.help}")
-                prefix = "# " if argument == setting.default else ""
-                toml_setting = toml.dumps({setting_name: argument})
-                lines.append(f"{prefix}{toml_setting}")
-
-        return "\n".join(lines).strip()
-
     ctx = click.get_current_context()
 
     if not ctx.params[print_option]:
@@ -254,17 +229,14 @@ def handle_print_config_option(
 
     excluded_options = excluded_options if excluded_options is not None else []
     excluded_options.extend((print_option, config_file_option))
-    options = {}
 
-    for option in ctx.command.params:
-        if (
-            isinstance(option, click.core.Option)
-            and not option.is_eager
-            and option.name not in excluded_options
-        ):
-            options[option.name] = option
-
-    echo_wrapper(3)(render_toml(settings=options, arguments=ctx.params))
+    config = print_config(
+        options=ctx.command.params,
+        excluded_options=excluded_options,
+        arguments=ctx.params,
+        render_func=render_toml_config,
+    )
+    echo_wrapper(3)(config)
     ctx.exit()
 
 
@@ -290,6 +262,49 @@ def is_option_switch_in_arguments(switches, short_switches, arguments):
                         return True
 
     return False
+
+
+def print_config(options, excluded_options, arguments, render_func):
+    """ Return the sample configuration file for the defined options and command line
+        arguments via the given render function as a string.
+    """
+    settings = {}
+
+    for option in options:
+        if (
+            isinstance(option, click.core.Option)
+            and not option.is_eager
+            and option.name not in excluded_options
+        ):
+            settings[option.name] = option
+
+    return render_func(settings, arguments)
+
+
+def render_toml_config(settings, arguments):
+    """ Return the settings rendered into a TOML-format configuration file string.
+    """
+    lines = [
+        f"# Sample {COMMAND_NAME} configuration file, by default located at "
+        f"{DEFAULT_CONFIG_FILE_PATH}.",
+        "# Configuration options already set to the default value are "
+        "commented-out.",
+        "",
+        f"[{COMMAND_NAME}]",
+        "",
+    ]
+
+    for setting_name in sorted(settings):
+        setting = settings[setting_name]
+        argument = arguments[setting_name]
+
+        if argument is not None and argument != ():
+            lines.append(f"# {setting.help}")
+            prefix = "# " if argument == setting.default else ""
+            toml_setting = toml.dumps({setting_name: argument})
+            lines.append(f"{prefix}{toml_setting}")
+
+    return "\n".join(lines).strip()
 
 
 def _show_usage(self, file=None):
