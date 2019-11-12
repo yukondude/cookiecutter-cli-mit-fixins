@@ -133,17 +133,7 @@ def config_command_class(config_file_option=DEFAULT_CONFIG_FILE_OPTION):
                             f"{exc}"
                         )
 
-                short_switch_list = []
-
-                # Gather all possible "short" switches to help (re)parse the command
-                # line below.
-                for option in ctx.command.params:
-                    if isinstance(option, click.core.Option):
-                        for switch in option.opts + option.secondary_opts:
-                            if switch.startswith("-") and len(switch) == 2:
-                                short_switch_list.append(switch[1])
-
-                short_switches = "".join(short_switch_list)
+                short_switches = get_short_switches(ctx.command.params)
 
                 for option in ctx.command.params:
                     if option.name not in ctx.params or not isinstance(
@@ -212,6 +202,20 @@ def echo_wrapper(verbosity):
             click.secho(f"{prefix}{message}", err=is_err, **style)
 
     return echo_func
+
+
+def get_short_switches(options):
+    """ Return a string of gathered 'short' (1 character) option switches.
+    """
+    short_switch_list = []
+
+    for option in options:
+        if isinstance(option, click.core.Option):
+            for switch in option.opts + option.secondary_opts:
+                if switch.startswith("-") and len(switch) == 2:
+                    short_switch_list.append(switch[1])
+
+    return "".join(short_switch_list)
 
 
 def handle_print_config_option(
