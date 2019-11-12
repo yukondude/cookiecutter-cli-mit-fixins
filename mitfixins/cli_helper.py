@@ -121,6 +121,8 @@ def config_command_class(config_file_option=DEFAULT_CONFIG_FILE_OPTION):
                 config_path = DEFAULT_CONFIG_FILE_PATH
 
             if pathlib.Path(config_path).exists():
+                settings = {}
+
                 with open(config_path, "r") as config_file:
                     try:
                         settings = toml.load(config_file)[COMMAND_NAME]
@@ -130,27 +132,42 @@ def config_command_class(config_file_option=DEFAULT_CONFIG_FILE_OPTION):
                             f"{exc}"
                         )
 
-                    for option in ctx.command.params:
-                        if option.name not in ctx.params or not isinstance(
-                            option, click.core.Option
-                        ):
-                            continue
+                short_switch_list = []
 
-                        # First choice for option value is the declared default. Second
-                        # choice is the configuration file setting.
-                        value = settings.get(option.name, option.default)
+                # Gather all possible "short" switches to help (re)parse the command
+                # line below.
+                for option in ctx.command.params:
+                    if isinstance(option, click.core.Option):
+                        for switch in option.opts + option.secondary_opts:
+                            if switch.startswith("-") and len(switch) == 2:
+                                short_switch_list.append(switch[1])
 
-                        # Third choice is the value passed on the command line. Have to
-                        # check manually because the context already includes the
-                        # default if the option wasn't specified. Click doesn't seem to
-                        # report if a value arrived via the default or explicitly on the
-                        # command line.
-                        if is_option_switch_in_arguments(
-                            option.opts + option.secondary_opts, sys.argv[1:]
-                        ):
-                            value = ctx.params[option.name]
+                short_switches = "".join(short_switch_list)
 
-                        ctx.params[option.name] = value
+                for option in ctx.command.params:
+                    if option.name not in ctx.params or not isinstance(
+                        option, click.core.Option
+                    ):
+                        continue
+
+                    # Third preferential choice for option value is the declared
+                    # default. Second choice is the configuration file setting.
+                    value = settings.get(option.name, option.default)
+
+                    # ...and first choice is the value passed on the command line.
+                    # Have to check this manually because the context already
+                    # includes the default if the option wasn't specified. Click
+                    # doesn't seem to report if a value arrived via the default or
+                    # explicitly on the command line and I haven't figured a way to
+                    # intercept the normal parsing to implement this myself.
+                    if is_option_switch_in_arguments(
+                        option.opts + option.secondary_opts,
+                        short_switches,
+                        sys.argv[1:],
+                    ):
+                        value = ctx.params[option.name]
+
+                    ctx.params[option.name] = value
 
             return super().invoke(ctx)
 
@@ -251,19 +268,26 @@ def handle_print_config_option(
     ctx.exit()
 
 
-def is_option_switch_in_arguments(switches, arguments):
+def is_option_switch_in_arguments(switches, short_switches, arguments):
     """ Return True if the given option switches appear on the command line. This is,
-        admittedly, a bit of hackish guess.
+        admittedly, a bit of a hackish re-implementation of the Click argument parser.
     """
     for argument in [a for a in arguments if a.startswith("-")]:
         for switch in switches:
-            if argument.startswith(switch) or (
-                len(argument) >= 2
-                and argument[1] != "-"
-                and len(switch) == 2
-                and switch[1] in argument
-            ):
+            if argument.startswith(switch):
+                # Long switches
                 return True
+
+            if len(switch) == 2 and len(argument) >= 2 and argument[1] != "-":
+                # Short switches
+                for char in argument[1:]:
+                    if char not in short_switches:
+                        # Hit a character that's not one of the recognized short
+                        # switches so it must be part of an argument value.
+                        break
+
+                    if char == switch[1]:
+                        return True
 
     return False
 
