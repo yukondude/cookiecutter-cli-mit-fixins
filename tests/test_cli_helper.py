@@ -6,14 +6,17 @@
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 from click.core import Option
+from click.testing import CliRunner
 import pytest
 
 from mitfixins.cli_helper import (
+    CliException,
     COMMAND_NAME,
     DEFAULT_CONFIG_FILE_PATH,
     echo_wrapper,
     get_short_switches,
     is_option_switch_in_arguments,
+    load_toml_config,
     print_config,
     render_toml_config,
     show_version,
@@ -101,6 +104,23 @@ def test_get_short_switches(options, expected):
 def test_is_option_switch_in_arguments(switches, short_switches, arguments, expected):
     assert is_option_switch_in_arguments(switches, short_switches, arguments) == \
            expected
+
+
+def test_load_toml_config_fail():
+    with CliRunner().isolated_filesystem():
+        with open('test.toml', 'w') as toml_file:
+            toml_file.write("BAD MOJO")
+
+        with pytest.raises(CliException):
+            assert load_toml_config("test.toml")
+
+
+def test_load_toml_config_pass():
+    with CliRunner().isolated_filesystem():
+        with open('test.toml', 'w') as toml_file:
+            toml_file.write(f"[{COMMAND_NAME}]\nvariable = 13")
+
+        assert {"variable": 13} == load_toml_config("test.toml")
 
 
 @pytest.mark.parametrize("options,excluded_options,arguments,expected", [
