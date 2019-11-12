@@ -96,7 +96,7 @@ class CliException(click.ClickException):
     """ ClickException overridden to display errors using echo_wrapper()'s formatting.
     """
 
-    def show(self, file=None):
+    def show(self, file=None):  # pragma no cover
         """ Display the error.
         """
         _ = file
@@ -122,17 +122,7 @@ def config_command_class(config_file_option=DEFAULT_CONFIG_FILE_OPTION):
                 config_path = DEFAULT_CONFIG_FILE_PATH
 
             if pathlib.Path(config_path).exists():
-                settings = {}
-
-                with open(config_path, "r") as config_file:
-                    try:
-                        settings = toml.load(config_file)[COMMAND_NAME]
-                    except toml.TomlDecodeError as exc:
-                        raise CliException(
-                            f"Unable to parse configuration file '{config_path}': "
-                            f"{exc}"
-                        )
-
+                settings = load_toml_config(config_path)
                 short_switches = get_short_switches(ctx.command.params)
 
                 for option in ctx.command.params:
@@ -266,6 +256,22 @@ def is_option_switch_in_arguments(switches, short_switches, arguments):
                         return True
 
     return False
+
+
+def load_toml_config(config_path):
+    """ Load the settings from the given path to a TOML-format configuration file.
+    """
+    settings = {}
+
+    with open(config_path, "r") as config_file:
+        try:
+            settings = toml.load(config_file)[COMMAND_NAME]
+        except toml.TomlDecodeError as exc:
+            raise CliException(
+                f"Unable to parse configuration file '{config_path}': {exc}"
+            )
+
+    return settings
 
 
 def print_config(options, excluded_options, arguments, render_func):
