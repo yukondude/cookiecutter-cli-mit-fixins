@@ -13,13 +13,13 @@ help:
 
 test:
 	coverage run --module py.test
-	coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'
+	coverage report --show-missing --omit='*site-packages*,*__init__.py'
 
 fulltest:
 	coverage run --module py.test --verbose
 	echo
 	echo "Coverage Statistics"
-	coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'
+	-coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'
 	echo
 	echo "Radon Cyclomatic Complexity (CC)"
 	radon cc --average mitfixins
