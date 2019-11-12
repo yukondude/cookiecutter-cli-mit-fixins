@@ -5,9 +5,7 @@
 # <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
-from dataclasses import dataclass
-
-import click
+from click.core import Option
 import pytest
 
 from mitfixins.cli_helper import (
@@ -73,18 +71,17 @@ def test_echo_wrapper(capsys, arguments, expected):
 
 
 @pytest.mark.parametrize("options,expected", [
-    # options, expected
-    ((click.core.Option(["--apple"]),), ""),
-    ((click.core.Option(["--apple", "-a"]),), "a"),
-    ((click.core.Option(["--apple", "-a"]), click.core.Option(["--banana", "-B"])),
-     "aB"),
+    # options,                                                expected
+    ((Option(["--apple"]),),                                  ""),
+    ((Option(["--apple", "-a"]),),                            "a"),
+    ((Option(["--apple", "-a"]), Option(["--banana", "-B"])), "aB"),
 ])
 def test_get_short_switches(options, expected):
     assert get_short_switches(options) == expected
 
 
 @pytest.mark.parametrize("switches,short_switches,arguments,expected", [
-    # switches,         short_switches, arguments,                   expected
+    # switches,         short_switches, arguments,                    expected
     (("-a", "--apple"), "aBcD",         ("",),                        False),
     (("-a", "--apple"), "aBcD",         ("--banana",),                False),
     (("-a", "--apple"), "aBcD",         ("-a",),                      True),
@@ -105,14 +102,6 @@ def test_is_option_switch_in_arguments(switches, short_switches, arguments, expe
            expected
 
 
-@dataclass
-class MockSetting:
-    """ Mock setting class for test_render_toml_config().
-    """
-    default: int
-    help: str
-
-
 EXPECTED_EMPTY_CONFIG = f"""# Sample {COMMAND_NAME} configuration file, by """ + \
     f"""default located at {DEFAULT_CONFIG_FILE_PATH}.
 # Configuration options already set to the default value are commented-out.
@@ -131,11 +120,13 @@ a = 33"""
 
 
 @pytest.mark.parametrize("settings,arguments,expected", [
-    # settings, arguments, expected
-    ([], [], EXPECTED_EMPTY_CONFIG),
-    ({"a": MockSetting(default=13, help="This is a setting")}, {"a": 13},
+    # settings,                                                   arguments,
+    # expected
+    ({},                                                          {},
+     EXPECTED_EMPTY_CONFIG),
+    ({"a": Option(["-a"], default=13, help="This is a setting")}, {"a": 13},
      EXPECTED_DEFAULT_CONFIG),
-    ({"a": MockSetting(default=13, help="This is a setting")}, {"a": 33},
+    ({"a": Option(["-a"], default=13, help="This is a setting")}, {"a": 33},
      EXPECTED_NONDEFAULT_CONFIG),
 ])
 def test_render_toml_config(settings, arguments, expected):
