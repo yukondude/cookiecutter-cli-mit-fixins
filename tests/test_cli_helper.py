@@ -7,12 +7,14 @@
 
 from dataclasses import dataclass
 
+import click
 import pytest
 
 from mitfixins.cli_helper import (
     COMMAND_NAME,
     DEFAULT_CONFIG_FILE_PATH,
     echo_wrapper,
+    get_short_switches,
     is_option_switch_in_arguments,
     render_toml_config,
     show_version,
@@ -68,6 +70,17 @@ def test_echo_wrapper(capsys, arguments, expected):
     captured_out, captured_err = capsys.readouterr()
     assert captured_out.strip() == expected_out
     assert captured_err.strip() == expected_err
+
+
+@pytest.mark.parametrize("options,expected", [
+    # options, expected
+    ((click.core.Option(["--apple"]),), ""),
+    ((click.core.Option(["--apple", "-a"]),), "a"),
+    ((click.core.Option(["--apple", "-a"]), click.core.Option(["--banana", "-B"])),
+     "aB"),
+])
+def test_get_short_switches(options, expected):
+    assert get_short_switches(options) == expected
 
 
 @pytest.mark.parametrize("switches,short_switches,arguments,expected", [
