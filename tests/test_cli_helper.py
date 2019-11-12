@@ -5,11 +5,16 @@
 # <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
+from dataclasses import dataclass
+
 import pytest
 
 from mitfixins.cli_helper import (
+    COMMAND_NAME,
+    DEFAULT_CONFIG_FILE_PATH,
     echo_wrapper,
     is_option_switch_in_arguments,
+    render_toml_config,
     show_version,
 )
 
@@ -85,6 +90,43 @@ def test_echo_wrapper(capsys, arguments, expected):
 def test_is_option_switch_in_arguments(switches, short_switches, arguments, expected):
     assert is_option_switch_in_arguments(switches, short_switches, arguments) == \
            expected
+
+
+@dataclass
+class MockSetting:
+    """ Mock setting class for test_render_toml_config().
+    """
+    default: int
+    help: str
+
+
+EXPECTED_EMPTY_CONFIG = f"""# Sample {COMMAND_NAME} configuration file, by """ + \
+    f"""default located at {DEFAULT_CONFIG_FILE_PATH}.
+# Configuration options already set to the default value are commented-out.
+
+[{COMMAND_NAME}]"""
+
+EXPECTED_DEFAULT_CONFIG = EXPECTED_EMPTY_CONFIG + f"""
+
+# This is a setting
+# a = 13"""
+
+EXPECTED_NONDEFAULT_CONFIG = EXPECTED_EMPTY_CONFIG + f"""
+
+# This is a setting
+a = 33"""
+
+
+@pytest.mark.parametrize("settings,arguments,expected", [
+    # settings, arguments, expected
+    ([], [], EXPECTED_EMPTY_CONFIG),
+    ({"a": MockSetting(default=13, help="This is a setting")}, {"a": 13},
+     EXPECTED_DEFAULT_CONFIG),
+    ({"a": MockSetting(default=13, help="This is a setting")}, {"a": 33},
+     EXPECTED_NONDEFAULT_CONFIG),
+])
+def test_render_toml_config(settings, arguments, expected):
+    assert render_toml_config(settings, arguments) == expected
 
 
 def test_show_version_fail(capsys):
