@@ -14,6 +14,7 @@ from mitfixins.cli_helper import (
     echo_wrapper,
     get_short_switches,
     is_option_switch_in_arguments,
+    print_config,
     render_toml_config,
     show_version,
 )
@@ -100,6 +101,25 @@ def test_get_short_switches(options, expected):
 def test_is_option_switch_in_arguments(switches, short_switches, arguments, expected):
     assert is_option_switch_in_arguments(switches, short_switches, arguments) == \
            expected
+
+
+@pytest.mark.parametrize("options,excluded_options,arguments,expected", [
+    # options, excluded_options, arguments, expected
+    ([], [], {}, ""),
+    ([Option(["--apple"])], [], {"apple": 42}, "apple:42"),
+    ([Option(["--apple"]), Option(["--banana"])], [], {"banana": 13, "apple": 42},
+     "apple:42,banana:13"),
+    ([Option(["--apple"]), Option(["--banana"])], ["banana"],
+     {"banana": 13, "apple": 42}, "apple:42"),
+    ([Option(["--apple"], is_eager=True), Option(["--banana"])], [],
+     {"banana": 13, "apple": 42}, "banana:13"),
+])
+def test_print_config(options, excluded_options, arguments, expected):
+    def mock_render(settings, arguments_):
+        _ = arguments
+        return ",".join([f"{s}:{arguments_[s]}" for s in sorted(settings)])
+
+    assert print_config(options, excluded_options, arguments, mock_render) == expected
 
 
 EXPECTED_EMPTY_CONFIG = f"""# Sample {COMMAND_NAME} configuration file, by """ + \
