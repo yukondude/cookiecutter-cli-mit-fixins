@@ -39,7 +39,7 @@ file `<command-name>/<command-name>/cli.py`.
 
 ## Mit Fixins
 
-*I just assume that's how Germans say "all dressed."*
+*I just assume that's German for "with all the trimmings."*
 
 - Based on the super-nifty [Click](https://click.palletsprojects.com/) package for
 creating command-line interfaces.
