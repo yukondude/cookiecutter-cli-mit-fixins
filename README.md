@@ -37,7 +37,9 @@ path--the latter two are required by the sample arguments)
 1. Begin programming your command by first editing the command line interface in the
 file `<command-name>/<command-name>/cli.py`.
 
-## Goodies
+## Mit Fixins
+
+*I just assume that's how Germans say "all dressed."*
 
 - Based on the super-nifty [Click](https://click.palletsprojects.com/) package for
 creating command-line interfaces.
