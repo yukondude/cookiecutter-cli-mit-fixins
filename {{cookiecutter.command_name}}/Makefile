@@ -33,3 +33,4 @@ install:
 	git init
 	git add .
 	pre-commit install
+	git commit -m"Initial version."
