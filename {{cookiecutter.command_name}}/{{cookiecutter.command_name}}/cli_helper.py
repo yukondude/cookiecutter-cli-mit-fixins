@@ -1,8 +1,9 @@
 """ CLI helper functions.
 """
 
-# This file is part of cookiecutter-cli-mit-fixins. Copyright 2019 Dave Rogers
-# <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
+# This file is part of cookiecutter-cli-mit-fixins.
+# Copyright 2019 Dave Rogers <thedude@yukondude.com>.
+# Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 import os
@@ -350,5 +351,5 @@ def show_version(ctx, param, value):
         version = f"({COMMAND_NAME} is not registered)"
 
     click.echo(f"{COMMAND_NAME} version {version}")
-    click.echo("Copyright 2019 Dave Rogers. Licensed under the GPLv3. See LICENSE.")
+    click.echo("Copyright {{cookiecutter.copyright_year}} {{cookiecutter.author_name}}. Licensed under the GPLv3. See LICENSE.")
     ctx.exit()

@@ -1,8 +1,8 @@
 [tool.poetry]
-name = "mitfixins"
+name = "{{cookiecutter.command_name}}"
 version = "0.1.0"
-description = "Cookiecutter-generated Click-based Python command line interface."
-authors = ["Dave Rogers <thedude@yukondude.com>"]
+description = "{{cookiecutter.command_description}}"
+authors = ["{{cookiecutter.author_name}} <{{cookiecutter.author_email}}>"]
 license = "GPL-3.0"
 
 [tool.poetry.dependencies]
@@ -19,7 +19,7 @@ pysnooper = "^0.2.8"
 radon = "^4.0"
 
 [tool.poetry.scripts]
-mitfixins = "mitfixins.cli:main"
+{{cookiecutter.command_name}} = "{{cookiecutter.command_name}}.cli:main"
 
 [build-system]
 requires = ["poetry>=0.12"]

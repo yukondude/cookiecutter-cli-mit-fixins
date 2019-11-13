@@ -1,7 +1,8 @@
-# cookiecutter-cli-mit-fixins Makefile for various and sundry project tasks.
+# {{cookiecutter.command_name}} command Makefile for various and sundry project tasks.
 
-# This file is part of cookiecutter-cli-mit-fixins. Copyright 2019 Dave Rogers
-# <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
+# This file is part of {{cookiecutter.command_name}}.
+# Copyright {{cookiecutter.copyright_year}} {{cookiecutter.author_name}} <{{cookiecutter.author_email}}>.
+# Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 .SILENT: help test fulltest
@@ -22,7 +23,10 @@ fulltest:
 	-coverage report --fail-under 80 --show-missing --omit='*site-packages*,*__init__.py'
 	echo
 	echo "Radon Cyclomatic Complexity (CC)"
-	radon cc --average mitfixins
+	radon cc --average {{cookiecutter.command_name}}
 	echo
 	echo "Radon Maintainability Index (MI)"
-	radon mi --show --sort mitfixins
+	radon mi --show --sort {{cookiecutter.command_name}}
+
+install:
+	poetry install

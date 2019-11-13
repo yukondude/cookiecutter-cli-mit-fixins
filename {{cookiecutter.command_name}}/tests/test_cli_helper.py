@@ -1,15 +1,16 @@
 """ CLI helper function unit tests.
 """
 
-# This file is part of cookiecutter-cli-mit-fixins. Copyright 2019 Dave Rogers
-# <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
+# This file is part of cookiecutter-cli-mit-fixins.
+# Copyright 2019 Dave Rogers <thedude@yukondude.com>.
+# Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 from click.core import Option
 from click.testing import CliRunner
 import pytest
 
-from mitfixins.cli_helper import (
+from {{cookiecutter.command_name}}.cli_helper import (
     CliException,
     COMMAND_NAME,
     DEFAULT_CONFIG_FILE_PATH,

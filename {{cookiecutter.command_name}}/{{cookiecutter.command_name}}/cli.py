@@ -1,8 +1,9 @@
 """ CLI entry point.
 """
 
-# This file is part of cookiecutter-cli-mit-fixins. Copyright 2019 Dave Rogers
-# <thedude@yukondude.com>. Licensed under the GNU General Public License, version 3.
+# This file is part of {{cookiecutter.command_name}}.
+# Copyright {{cookiecutter.copyright_year}} {{cookiecutter.author_name}} <{{cookiecutter.author_email}}>.
+# Licensed under the GNU General Public License, version 3.
 # Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
 import click
