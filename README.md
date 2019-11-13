@@ -3,9 +3,11 @@ A [cookiecutter](https://cookiecutter.readthedocs.io/en/latest/) template for ge
 [Click](https://click.palletsprojects.com/)-based Python command line interfaces with
 features up the wazoo.
 
-## Installation
+Copyright 2019 Dave Rogers <thedude@yukondude.com>.  
+Licensed under the GNU General Public License, version 3.  
+Refer to the attached LICENSE file or see <http://www.gnu.org/licenses/> for details.
 
-*This isn't fully figured out yet, but here's the gist.*
+## Installation
 
 When naming your command, choose an all-lowercase name without spaces or hyphens.
 Underscores are allowed by aren't particularly desirable.
@@ -25,5 +27,12 @@ Underscores are allowed by aren't particularly desirable.
 `cd <command-name> ; make install`
 1. Test the initial command line program: ` make test`
 1. View the initial command line help text: `<command-name> --help`
+1. Try running the command with its sample options and arguments:
+`<command-name> -v Makefile .`
+(`-v` is to see some output, `Makefile` is an existing file, and `.` is an existing
+path--the latter two are required by the sample arguments)
+1. Try running the command with the `--print-config` option to print a sample
+[TOML](https://github.com/toml-lang/toml)-format configuration file:
+`<command-name> --print-config Makefile .`
 1. Begin programming your command by first editing the command line interface in the
 file `<command-name>/<command-name>/cli.py`.
