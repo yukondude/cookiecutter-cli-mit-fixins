@@ -30,3 +30,7 @@ fulltest:
 
 install:
 	poetry install
+	mv gitignore .gitignore
+	git init
+	git add .
+	pre-commit install
