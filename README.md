@@ -5,7 +5,8 @@ features up the wazoo.
 
 ## Installation
 
-This isn't fully figured out yet, but here's the gist.
+*This isn't fully figured out yet, but here's the gist.*
+
 When naming your command, choose an all-lowercase name without spaces or hyphens.
 Underscores are allowed by aren't particularly desirable.
 
