@@ -1,4 +1,4 @@
-# {{cookiecutter.command_name}}
+# cookiecutter-cli-mit-fixins
 A [cookiecutter](https://cookiecutter.readthedocs.io/en/latest/) template for generating
 [Click](https://click.palletsprojects.com/)-based Python command line interfaces with
 features up the wazoo.
@@ -20,7 +20,7 @@ Underscores are allowed by aren't particularly desirable.
 (I recommend [virtualenvwrapper](https://virtualenvwrapper.readthedocs.io/en/latest/)):
 `mkvirtualenv -p $(which python3) <command-name>`
 1. From within the virtual environment, generate the project:
-`cookiecutter gh:yukondude/{{cookiecutter.command_name}}`
+`cookiecutter gh:yukondude/cookiecutter-cli-mit-fixins`
 1. Enter the project directory and complete the installation:
 `cd <command-name> ; make install`
 1. Test the initial command line program: ` make test`
