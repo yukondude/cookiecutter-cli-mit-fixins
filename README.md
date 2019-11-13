@@ -13,9 +13,9 @@ When naming your command, choose an all-lowercase name without spaces or hyphens
 Underscores are allowed by aren't particularly desirable.
 
 1. Install Python 3.7, or better: `brew install python` (macOS) or
-[just download it](https://www.python.org/downloads/).
+[just download it](https://www.python.org/downloads/) (*NIX).
 1. [Install cookiecutter]():
-`brew install cookiecutter` (macOS) or `pip install cookiecutter` (other)
+`brew install cookiecutter` (macOS) or `pip install cookiecutter` (*NIX)
 1. [Install Poetry](https://poetry.eustace.io/docs/#installation):
 `curl -sSL https://raw.githubusercontent.com/sdispater/poetry/master/get-poetry.py | python`
 1. Create a virtual environment for your command-line project
@@ -36,3 +36,20 @@ path--the latter two are required by the sample arguments)
 `<command-name> --print-config Makefile .`
 1. Begin programming your command by first editing the command line interface in the
 file `<command-name>/<command-name>/cli.py`.
+
+## Goodies
+
+- Based on the super-nifty [Click](https://click.palletsprojects.com/) package for
+creating command-line interfaces.
+- Uses the too-cool-for-school [Poetry](https://poetry.eustace.io/) for packaging and
+dependency management.
+- Both [Pytest](https://docs.pytest.org/en/latest/) and
+[Coverage](https://coverage.readthedocs.io/) are already configured.
+Features 70+ unit tests and 85%+ code coverage from the get-go.
+- Automatically performs static analysis on code with
+[pre-commit](https://pre-commit.com/) plug-ins, including:
+[black](https://pypi.org/project/black/), [flake8](http://flake8.pycqa.org/),
+[pylint](https://www.pylint.org), [bandit](https://pypi.org/project/bandit/), and
+others.
+- Somehow calculates code complexity and maintainability using
+[Radon](https://pypi.org/project/radon/).
